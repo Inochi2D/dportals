@@ -1,0 +1,16 @@
+name "dportals"
+description "xdg-portals for D"
+authors "Luna"
+copyright "Copyright © 2022, Luna"
+license "BSD 2-clause"
+dependency "ddbus" version="~>3.0.0-beta.2"
+targetPath "out/"
+
+// ONLY HERE TEMPORARILY FOR TESTING
+configuration "executable" {
+    targetType "executable"
+}
+
+configuration "unittest" {
+    dependency "silly" version="~>1.1.1"
+}

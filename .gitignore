@@ -1,0 +1,21 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/d-portals
+d-portals.so
+d-portals.dylib
+d-portals.dll
+d-portals.a
+d-portals.lib
+d-portals-test-*
+*.exe
+*.o
+*.obj
+*.lst
+
+dub.selections.json
+out/
+
+# This is only for testing
+source/app.d
