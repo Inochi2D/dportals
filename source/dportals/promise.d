@@ -2,9 +2,26 @@ module dportals.promise;
 import dportals;
 import ddbus;
 
-struct DPResponse {
-    uint response;
-    Variant!DBusAny[string] results;
+/**
+    Response code
+*/
+enum ResponseCode {
+    NONE = -1,
+
+    /**
+        Success, the request is carried out
+    */
+    Success = 0,
+
+    /**
+        The user cancelled the interaction
+    */
+    UserCancelled = 1,
+
+    /**
+        The user interaction was ended in some other way
+    */
+    EndedOther = 2
 }
 
 class Promise {
@@ -12,8 +29,8 @@ private:
     bool signalRecv;
     MessagePattern pattern;
 
-    int retStatus;
-    DPResponse* retVal;
+    ResponseCode retStatus = ResponseCode.NONE;
+    Variant!DBusAny[string] retVal;
 
 public:
     ~this() {
@@ -24,10 +41,10 @@ public:
         this.pattern = pattern;
         dpRouter.setHandler!void(pattern, (uint response, Variant!DBusAny[string] results) {
             this.signalRecv = true;
-            this.retStatus = response;
+            this.retStatus = cast(ResponseCode)response;
 
             if (this.success) {
-                this.retVal = new DPResponse(response, results);
+                this.retVal = results;
             }
         });
     }
@@ -56,7 +73,15 @@ public:
         Gets whether the Promise completed successfully
     */
     final
-    bool success() { return signalRecv && (retStatus == 0); }
+    bool success() { return signalRecv && (retStatus == ResponseCode.Success); }
+
+    /**
+        Returns the status of the promise
+    */
+    final
+    ResponseCode status() {
+        return retStatus;
+    }
 
     /**
         Awaits the completion of the promise
@@ -70,8 +95,8 @@ public:
         Gets the value of the Promise
     */
     final
-    ref DPResponse value() {
-        if (!success || !retVal) throw new Exception("Promise not fulfilled.");
-        return *retVal;
+    ref Variant!DBusAny[string] value() {
+        if (!success || retVal.length == 0) throw new Exception("Promise not fulfilled.");
+        return retVal;
     }
 }
