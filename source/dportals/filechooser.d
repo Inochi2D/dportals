@@ -170,11 +170,21 @@ struct FileSaveOptions {
     */
     string currentName;
 
-    // TODO: Support current_folder and current_file
+    /**
+        Suggested folder to save the file in.
+    */
+    string currentFolder;
+
+    /**
+        The current file (when saving an existing file).
+    */
+    string currentFile;
 }
 
 /**
     Opens a file open dialog
+
+    See: https://flatpak.github.io/xdg-desktop-portal/#gdbus-method-org-freedesktop-portal-FileChooser.OpenFile
 */
 Promise dpFileChooserOpenFile(string parentWindow, string title, FileOpenOptions options = FileOpenOptions.init) {
     PathIface obj = new PathIface(
@@ -203,7 +213,6 @@ Promise dpFileChooserOpenFile(string parentWindow, string title, FileOpenOptions
 /**
     Opens a file save dialog
 
-    TODO: Support all FileSaveOptions exposed by spec
     See: https://flatpak.github.io/xdg-desktop-portal/#gdbus-method-org-freedesktop-portal-FileChooser.SaveFile
 */
 Promise dpFileChooserSaveFile(string parentWindow, string title, FileSaveOptions options = FileSaveOptions.init) {
@@ -222,6 +231,8 @@ Promise dpFileChooserSaveFile(string parentWindow, string title, FileSaveOptions
     if (options.currentFilter) optionsKV["current_filter"] = variant(DBusAny(*options.currentFilter));
     if (!options.choices.empty) optionsKV["choices"] = variant(DBusAny(options.choices));
     if (!options.currentName.empty) optionsKV["current_name"] = variant(DBusAny(options.currentName));
+    if (!options.currentFolder.empty) optionsKV["current_folder"] = variant(DBusAny(cast(ubyte[])(options.currentFolder~"\0")));
+    if (!options.currentFile.empty) optionsKV["current_file"] = variant(DBusAny(cast(ubyte[])(options.currentFile~"\0")));
 
     ObjectPath path = obj.call!ObjectPath("SaveFile", parentWindow, title, optionsKV);
     return new Promise(MessagePattern(path, interfaceName("org.freedesktop.portal.Request"), "Response", true));
